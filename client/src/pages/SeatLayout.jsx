@@ -91,28 +91,100 @@ const SeatLayout = () => {
     }
   };
 
-  const bookTickets = async () => {
-    try {
-      if (!user) return toast.error("Please login to proceed");
+  const loadScript = (src) => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+ 
+const bookTickets = async () => {
+  try {
+    if (!user) return toast.error("Please login to proceed");
 
-      if (!selectedTime || !selectedSeats.length)
-        return toast.error("Please select a time and seats");
+    if (!selectedTime || !selectedSeats.length)
+      return toast.error("Please select time and seats");
 
-      const { data } = await axios.post(
-        "/api/booking/create",
-        { showId: selectedTime.showId, selectedSeats },
-        { headers: { Authorization: `Bearer ${await getToken()}` } }
-      );
+    // ✅ load razorpay
+    const res = await loadScript(
+      "https://checkout.razorpay.com/v1/checkout.js"
+    );
 
-      if (data.success) {
-        window.location.href = data.url;
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
+    if (!res) {
+      return toast.error("Razorpay failed to load");
     }
-  };
+
+    // ✅ calculate amount
+const amount = show?.show?.showPrice * selectedSeats.length;
+
+    // ✅ create order
+   const order = await axios.post(
+  "/api/payment/create-order",
+  {
+    showId: selectedTime.showId,
+    selectedSeats,
+  },
+  {
+    headers: { Authorization: `Bearer ${await getToken()}` },
+  }
+);
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY, // 👈 .env me daalna
+      amount: order.data.amount,
+      currency: "INR",
+      order_id: order.data.id,
+
+      name: "QuickShow",
+      description: "Movie Booking",
+
+      handler: async function (response) {
+        try {
+          // ✅ verify payment
+          const verify = await axios.post(
+            "/api/payment/verify",
+            response
+          );
+
+          if (verify.data.success) {
+            // ✅ create booking AFTER payment
+            const bookingRes = await axios.post(
+              "/api/booking/create",
+              {
+                showId: selectedTime.showId,
+                selectedSeats,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${await getToken()}`,
+                },
+              }
+            );
+
+            if (bookingRes.data.success) {
+              toast.success("Booking Confirmed 🎉");
+              navigate("/my-bookings");
+            } else {
+              toast.error(bookingRes.data.message);
+            }
+          } else {
+            toast.error("Payment verification failed");
+          }
+        } catch (err) {
+          toast.error("Something went wrong");
+        }
+      },
+    };
+
+    const paymentObject = new window.Razorpay(options);
+    paymentObject.open();
+  } catch (error) {
+    toast.error(error.message);
+  }
+};
 
   useEffect(() => {
     getShow();
