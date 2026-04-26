@@ -10,7 +10,7 @@ export const getUserBookings = async (req, res) => {
     const bookings = await Booking.find({ user })
       .populate({
         path: "show",
-        populate: { path: "movie" },
+        populate: { path: "movie" },//id ko replace krega actual data se
       })
       .sort({ createdAt: -1 });
 

@@ -11,23 +11,24 @@ const razorpay = new Razorpay({
 });
 
 //order is created
-router.post("/create-order", async (req, res) => {
+router.post("/create-order", async (req,res) => {
   try {
     
-const { showId, selectedSeats } = req.body;
+const { showId, selectedSeats } = req.body;// frontend ne bheja
 
-const showData = await Show.findById(showId);
+const showData = await Show.findById(showId);//db se show uthao
 
 const amount = showData.showPrice * selectedSeats.length;
 
     const order = await razorpay.orders.create({
+
       amount: amount * 100, // ₹ → paise
       currency: "INR",
     });
 
     res.json(order);
   } catch (err) {
-    console.log("RAZORPAY ERROR:", err); // 👈 yahan bhi add kar
+    console.log("RAZORPAY ERROR:", err); //jb hardcoded key use ki thi to error aayi thi
     res.status(500).json({ error: err.message });
   }
 });
