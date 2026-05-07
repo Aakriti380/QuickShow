@@ -25,7 +25,7 @@ export const AppProvider = ({ children }) => {
     console.log("Calling isAdmin API...");
 
     const { data } = await axios.get(
-      "http://localhost:3000/api/admin/is-admin",
+      "/api/admin/is-admin",
       {
         headers: { Authorization: `Bearer ${await getToken()}` },
       }
