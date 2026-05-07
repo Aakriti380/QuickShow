@@ -13,12 +13,12 @@ import paymentRouter from "./routes/paymentRoutes.js";
 
 const app = express();
 
-const port = 3000; //server ka port
+const port = process.env.PORT || 3000; //server ka port
 
 await connectDB();// wait until completed
 
 
--
+
 // Middleware
 app.use(express.json());
 app.use(cors());
