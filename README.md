@@ -150,6 +150,6 @@ docker compose down
 **Aakriti Vishnoi**
 
 GitHub: https://github.com/Aakriti380
-LinkedIn: (Add your LinkedIn URL here)
+LinkedIn: https://www.linkedin.com/in/aakriti-vishnoi-3532422a4/
 
 
