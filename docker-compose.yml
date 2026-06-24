@@ -1,0 +1,17 @@
+services:
+
+  backend:
+    build: ./server
+    container_name: quickshow-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./server/.env
+
+  frontend:
+    build: ./client
+    container_name: quickshow-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
